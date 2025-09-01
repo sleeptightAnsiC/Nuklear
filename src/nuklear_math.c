@@ -34,8 +34,6 @@
 ///  (it can actually approximate a lot more functions) can be
 ///  found here: www.lolengine.net/wiki/oss/lolremez
 */
-#ifndef NK_INV_SQRT
-#define NK_INV_SQRT nk_inv_sqrt
 NK_LIB float
 nk_inv_sqrt(float n)
 {
@@ -48,9 +46,6 @@ nk_inv_sqrt(float n)
     conv.f = conv.f * (threehalfs - (x2 * conv.f * conv.f));
     return conv.f;
 }
-#endif
-#ifndef NK_SIN
-#define NK_SIN nk_sin
 NK_LIB float
 nk_sin(float x)
 {
@@ -64,9 +59,6 @@ nk_sin(float x)
     NK_STORAGE const float a7 = +1.38235642404333740e-4f;
     return a0 + x*(a1 + x*(a2 + x*(a3 + x*(a4 + x*(a5 + x*(a6 + x*a7))))));
 }
-#endif
-#ifndef NK_COS
-#define NK_COS nk_cos
 NK_LIB float
 nk_cos(float x)
 {
@@ -83,9 +75,6 @@ nk_cos(float x)
     NK_STORAGE const float a8 = -1.8776444013090451e-5f;
     return a0 + x*(a1 + x*(a2 + x*(a3 + x*(a4 + x*(a5 + x*(a6 + x*(a7 + x*a8)))))));
 }
-#endif
-#ifndef NK_ATAN
-#define NK_ATAN nk_atan
 NK_LIB float
 nk_atan(float x)
 {
@@ -103,9 +92,6 @@ nk_atan(float x)
     u = u * x + -0.0004765437f;
     return u;
 }
-#endif
-#ifndef NK_ATAN2
-#define NK_ATAN2 nk_atan2
 NK_LIB float
 nk_atan2(float y, float x)
 {
@@ -129,7 +115,6 @@ nk_atan2(float y, float x)
     }
     return 0.0f; /* prevents warning */
 }
-#endif
 NK_LIB nk_uint
 nk_round_up_pow2(nk_uint v)
 {
