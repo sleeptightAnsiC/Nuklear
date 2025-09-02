@@ -9,6 +9,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// HACK: Usefull when you have a lot of stuff that you want to overwrite
+//       Just create config file, e.g. somewhere in "nk_config.h" and then
+//       include it at command line, e.g. -DNK_CONFIG_FILE="\"path/to/nk_config.h\""
+//       https://godbolt.org/z/46de1Mfd8
+//       https://en.cppreference.com/w/c/preprocessor/include
+#ifdef NK_CONFIG_FILE
+  #include NK_CONFIG_FILE
+#endif
+
 /*
  * ==============================================================
  *
