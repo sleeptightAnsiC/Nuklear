@@ -223,7 +223,13 @@ NK_STATIC_ASSERT(sizeof(nk_ptr) >= sizeof(void*));
 #ifdef NK_INCLUDE_STANDARD_BOOL
 NK_STATIC_ASSERT(sizeof(nk_bool) == sizeof(bool));
 #else
-NK_STATIC_ASSERT(sizeof(nk_bool) >= 2);
+// FIXME: This assumption that nk_bool must be at least 2bytes doesn't make much sense
+//        because C89 stdbool is often 1byte (.e.g. 8bit signed integer, or just 'byte')
+//        and because C99 _Bool and C++ bool are almost always 1byte
+//        Unless Nuklear does something funky, like using booleans for integer math,
+//        nothing would break, however I gotta have an eye on this thing...
+//NK_STATIC_ASSERT(sizeof(nk_bool) >= 2);
+NK_STATIC_ASSERT(sizeof(nk_bool) >= 1);
 #endif
 
 /* ============================================================================

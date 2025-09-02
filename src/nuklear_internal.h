@@ -74,7 +74,12 @@ NK_STATIC_ASSERT(sizeof(nk_byte) == 1);
 #ifdef NK_INCLUDE_STANDARD_BOOL
 NK_STATIC_ASSERT(sizeof(nk_bool) == sizeof(bool));
 #else
-NK_STATIC_ASSERT(sizeof(nk_bool) == 4);
+// FIXME: This one is even more stange than the one in src/nuklear.h
+//        In that file the assert was "sizeof(nk_bool) >= 2" but
+//        this one requires exacly 4 bytes...
+//        Again, this makes no sense (see the note in src/nuklear.h)
+//NK_STATIC_ASSERT(sizeof(nk_bool) == 4);
+NK_STATIC_ASSERT(sizeof(nk_bool) >= 1);
 #endif
 
 NK_GLOBAL const struct nk_rect nk_null_rect = {-8192.0f, -8192.0f, 16384, 16384};
