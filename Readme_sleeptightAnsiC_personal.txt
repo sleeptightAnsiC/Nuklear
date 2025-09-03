@@ -14,4 +14,5 @@ Changes (probably won't fit with upstream):
 - Added NK_CONFIG_FILE which let's you inject the header into [Nuklear]/src/nuklear.h
   This is usefull when you want to have config without using Nuklear as single-header-lib
   Not so usefull when using Nuklear as single-header-lib or when including it in only one file.
+- src/stb_truetype.h and src/stb_rect_pack.h pull huge amount of libc/libm symbols and NK_* macros do not overwrite those
 
