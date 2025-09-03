@@ -227,7 +227,7 @@ nk_sdl_init(SDL_Window *win, SDL_Renderer *renderer)
     NK_ASSERT(renderer);
     sdl = SDL_malloc(sizeof(struct nk_sdl));
     NK_ASSERT(sdl);
-    nk_zero(sdl, sizeof(struct nk_sdl));
+    SDL_zerop(sdl);
     sdl->win = win;
     sdl->renderer = renderer;
     nk_init_default(&sdl->ctx, 0);
