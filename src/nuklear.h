@@ -11,13 +11,21 @@ extern "C" {
 #endif
 
 // HACK: Usefull when you have a lot of stuff that you want to overwrite
-//       Just create config file, e.g. somewhere in "nk_config.h" and then
-//       include it at command line, e.g. -DNK_CONFIG_FILE="\"path/to/nk_config.h\""
+//       Just create "nk_config.h" somewhere and make sure thay compiler can find it
+//       For example, use following switch: -I./path/to/folder
+#ifdef NK_CONFIG_FILE
+  #include "nk_config.h"
+#endif
+// NOTE: I was also using this in following way before:
+//       -DNK_CONFIG_FILE="\"path/to/nk_config.h\""
+//       but I've hit a bug where my build cannot create compile_commands.json
+//       https://github.com/sleeptightAnsiC/rlspr/blob/830aa705184659fc4d94aefa28a1bc20316158e0/bld/genccdb.awk#L14-L18
+//       and also MSVC is not able to use this trick
 //       https://godbolt.org/z/46de1Mfd8
 //       https://en.cppreference.com/w/c/preprocessor/include
-#ifdef NK_CONFIG_FILE
-  #include NK_CONFIG_FILE
-#endif
+//#ifdef NK_CONFIG_FILE
+//  #include NK_CONFIG_FILE
+//#endif
 
 /*
  * ==============================================================
