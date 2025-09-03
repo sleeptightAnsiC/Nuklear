@@ -8,24 +8,6 @@
  *
  * ===============================================================
  */
-
-// FIXME: added errors here, so I won't forget about those dependencies
-#ifndef NK_INCLUDE_STANDARD_VARARGS
-#error "nuklear_sdl3_renderer depends on NK_INCLUDE_STANDARD_VARARGS !"
-#endif
-#ifndef NK_INCLUDE_DEFAULT_ALLOCATOR
-#error "nuklear_sdl3_renderer depends on NK_INCLUDE_DEFAULT_ALLOCATOR !"
-#endif
-#ifndef NK_INCLUDE_VERTEX_BUFFER_OUTPUT
-#error "nuklear_sdl3_renderer depends on NK_INCLUDE_VERTEX_BUFFER_OUTPUT !"
-#endif
-#ifndef NK_INCLUDE_FONT_BAKING
-#error "nuklear_sdl3_renderer depends on NK_INCLUDE_FONT_BAKING !"
-#endif
-#ifndef NK_INCLUDE_DEFAULT_FONT
-#error "nuklear_sdl3_renderer depends on NK_INCLUDE_DEFAULT_FONT !"
-#endif
-
 #ifndef NK_SDL_RENDERER_H_
 #define NK_SDL_RENDERER_H_
 
