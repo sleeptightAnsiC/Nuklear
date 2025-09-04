@@ -330,7 +330,10 @@ nk_sdl_handle_event(struct nk_context* ctx, SDL_Event *evt)
                 switch(evt->button.button)
                 {
                     case SDL_BUTTON_LEFT:
-                        if (evt->button.clicks > 1)
+                        // FIXME: This isn't perfect but should detect double-click
+                        //        and will not prevent consecutive clicks
+                        //        https://github.com/Immediate-Mode-UI/Nuklear/pull/779#issuecomment-2859431959
+                        if (evt->button.clicks == 2)
                             nk_input_button(ctx, NK_BUTTON_DOUBLE, x, y, down);
                         else
                             nk_input_button(ctx, NK_BUTTON_LEFT, x, y, down);
