@@ -16,6 +16,12 @@
 #error "nuklear_sdl3_renderer requires at least SDL 3.0.0"
 #endif
 
+/* We have to redefine it because demos do not include any headers
+ * This is the same default value as the one from "src/nuklear_internal.h" */
+#ifndef NK_BUFFER_DEFAULT_INITIAL_SIZE
+    #define NK_BUFFER_DEFAULT_INITIAL_SIZE (4*1024)
+#endif
+
 NK_API struct nk_context*   nk_sdl_init(SDL_Window *win, SDL_Renderer *renderer);
 NK_API struct nk_font_atlas* nk_sdl_font_stash_begin(struct nk_context* ctx);
 NK_API void                 nk_sdl_font_stash_end(struct nk_context* ctx);
@@ -78,6 +84,27 @@ NK_API void nk_sdl_set_userdata(struct nk_context* ctx, nk_handle userdata) {
     NK_ASSERT(sdl);
     sdl->userdata = userdata;
 }
+
+NK_INTERN void *
+nk_sdl_alloc(nk_handle user, void *old, nk_size size)
+{
+    NK_UNUSED(user);
+    NK_UNUSED(old);
+    return SDL_malloc(size);
+}
+
+NK_INTERN void
+nk_sdl_free(nk_handle user, void *old)
+{
+    NK_UNUSED(user);
+    SDL_free(old);
+}
+
+NK_GLOBAL const struct nk_allocator nk_sdl_allocator = {
+    .userdata = NULL,
+    .alloc = nk_sdl_alloc,
+    .free = nk_sdl_free,
+};
 
 NK_INTERN void
 nk_sdl_device_upload_atlas(struct nk_context* ctx, const void *image, int width, int height)
@@ -146,8 +173,8 @@ nk_sdl_render(struct nk_context* ctx, enum nk_anti_aliasing AA)
         config.line_AA = AA;
 
         /* convert shapes into vertexes */
-        nk_buffer_init_default(&vbuf);
-        nk_buffer_init_default(&ebuf);
+        nk_buffer_init(&vbuf, &nk_sdl_allocator, NK_BUFFER_DEFAULT_INITIAL_SIZE);
+        nk_buffer_init(&ebuf, &nk_sdl_allocator, NK_BUFFER_DEFAULT_INITIAL_SIZE);
         nk_convert(&sdl->ctx, &sdl->ogl.cmds, &vbuf, &ebuf, &config);
 
         /* iterate over and execute each draw command */
@@ -230,12 +257,12 @@ nk_sdl_init(SDL_Window *win, SDL_Renderer *renderer)
     SDL_zerop(sdl);
     sdl->win = win;
     sdl->renderer = renderer;
-    nk_init_default(&sdl->ctx, 0);
+    nk_init(&sdl->ctx, &nk_sdl_allocator, NULL);
     sdl->ctx.userdata = nk_handle_ptr((void*)sdl);
     sdl->ctx.clip.copy = nk_sdl_clipboard_copy;
     sdl->ctx.clip.paste = nk_sdl_clipboard_paste;
     sdl->ctx.clip.userdata = nk_handle_ptr(0);
-    nk_buffer_init_default(&sdl->ogl.cmds);
+    nk_buffer_init(&sdl->ogl.cmds, &nk_sdl_allocator, NK_BUFFER_DEFAULT_INITIAL_SIZE);
     return &sdl->ctx;
 }
 
@@ -246,7 +273,7 @@ nk_sdl_font_stash_begin(struct nk_context* ctx)
     NK_ASSERT(ctx);
     sdl = (struct nk_sdl*)ctx->userdata.ptr;
     NK_ASSERT(sdl);
-    nk_font_atlas_init_default(&sdl->atlas);
+    nk_font_atlas_init(&sdl->atlas, &nk_sdl_allocator);
     nk_font_atlas_begin(&sdl->atlas);
     return &sdl->atlas;
 }
