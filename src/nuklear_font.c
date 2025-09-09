@@ -1333,11 +1333,13 @@ nk_font_atlas_cleanup(struct nk_font_atlas *atlas)
 NK_API void
 nk_font_atlas_clear(struct nk_font_atlas *atlas)
 {
-    NK_ASSERT(atlas);
-    NK_ASSERT(atlas->temporary.alloc);
-    NK_ASSERT(atlas->temporary.free);
-    NK_ASSERT(atlas->permanent.alloc);
-    NK_ASSERT(atlas->permanent.free);
+    // FIXME: https://github.com/Immediate-Mode-UI/Nuklear/pull/779#discussion_r2331856071
+    //        Those asserts make no sense given the fact there are nullchecks down below
+    // NK_ASSERT(atlas);
+    // NK_ASSERT(atlas->temporary.alloc);
+    // NK_ASSERT(atlas->temporary.free);
+    // NK_ASSERT(atlas->permanent.alloc);
+    // NK_ASSERT(atlas->permanent.free);
     if (!atlas || !atlas->permanent.alloc || !atlas->permanent.free) return;
 
     if (atlas->config) {
