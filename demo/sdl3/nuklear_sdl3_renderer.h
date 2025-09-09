@@ -30,6 +30,7 @@ NK_API void                 nk_sdl_render(struct nk_context* ctx, enum nk_anti_a
 NK_API void                 nk_sdl_shutdown(struct nk_context* ctx);
 NK_API nk_handle            nk_sdl_userdata(struct nk_context* ctx);
 NK_API void                 nk_sdl_set_userdata(struct nk_context* ctx, nk_handle userdata);
+NK_API void                 nk_sdl_style_set_font_debug(struct nk_context* ctx);
 
 #endif /* NK_SDL3_RENDERER_H_ */
 
@@ -63,6 +64,7 @@ struct nk_sdl_vertex {
 struct nk_sdl {
     SDL_Window *win;
     SDL_Renderer *renderer;
+    struct nk_user_font* font_debug;
     struct nk_sdl_device ogl;
     struct nk_context ctx;
     struct nk_font_atlas atlas;
@@ -410,8 +412,120 @@ void nk_sdl_shutdown(struct nk_context* ctx)
     }
 
     ctx->userdata = nk_handle_ptr(0);
+    SDL_free(sdl->font_debug);
     SDL_free(sdl);
     nk_free(ctx);
+}
+
+/* FIXME: width/height of the debug font atlas (integer)
+ *        Probably needs better name... */
+#define WH (10)
+
+NK_INTERN float
+nk_sdl_query_debug_font_width(nk_handle handle, float height,
+                              const char *text, int len)
+{
+    NK_UNUSED(handle);
+    NK_UNUSED(text);
+    /* FIXME: does this thing need to handle newlines and tabs ??? */
+    return height * len;
+}
+
+NK_INTERN void
+nk_sdl_query_debug_font_glypth(nk_handle handle, float font_height,
+                               struct nk_user_font_glyph *glyph,
+                               nk_rune codepoint, nk_rune next_codepoint)
+{
+    char ascii;
+    int idx, x, y;
+    NK_UNUSED(next_codepoint);
+
+    ascii = (codepoint > (nk_rune)'~' || codepoint < (nk_rune)' ')
+            ? '?' : (char)codepoint;
+    NK_ASSERT(ascii <= '~' && ascii >= ' ');
+
+    idx = (int)(ascii - ' ');
+    NK_ASSERT(idx >= 0 && idx <= (WH * WH));
+
+    x = idx / WH;
+    y = idx % WH;
+
+    glyph->height = font_height;
+    glyph->width = font_height;
+    glyph->xadvance = font_height;
+    glyph->uv[0].x = (float)(x + 0) / WH;
+    glyph->uv[0].y = (float)(y + 0) / WH;
+    glyph->uv[1].x = (float)(x + 1) / WH;
+    glyph->uv[1].y = (float)(y + 1) / WH;
+    glyph->offset.x = 0.0f;
+    glyph->offset.y = 0.0f;
+}
+
+NK_API void
+nk_sdl_style_set_font_debug(struct nk_context* ctx)
+{
+    struct nk_user_font* font;
+    struct nk_sdl* sdl;
+    SDL_Surface *surface;
+    SDL_Renderer *renderer;
+    char buf[2];
+    int x, y;
+    bool success;
+    NK_ASSERT(ctx);
+
+    /* FIXME: For now, use another software Renderer just to make sure
+     *        that we won't change any state in the main Renderer,
+     *        but it would be nice to reuse the main one */
+    surface = SDL_CreateSurface(WH * SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE,
+                                WH * SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE,
+                                SDL_PIXELFORMAT_RGBA32);
+    NK_ASSERT(surface);
+    renderer = SDL_CreateSoftwareRenderer(surface);
+    NK_ASSERT(renderer);
+    success = SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+    NK_ASSERT(success);
+
+    /* SPACE is the first printable ASCII character */
+    buf[0] = ' ';
+    buf[1] = '\0';
+    for (x = 0; x < WH; x++)
+    {
+        for (y = 0; y < WH; y++)
+        {
+            success = SDL_RenderDebugText(renderer,
+                                          (float)(x * SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE),
+                                          (float)(y * SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE),
+                                          buf);
+            NK_ASSERT(success);
+
+            buf[0]++;
+            /* TILDE is the last printable ASCII character */
+            if (buf[0] > '~')
+                break;
+        }
+    }
+    success = SDL_RenderPresent(renderer);
+    NK_ASSERT(success);
+
+    font = SDL_malloc(sizeof(*font));
+    NK_ASSERT(font);
+    font->userdata.ptr = NULL;
+    font->height = SDL_DEBUG_TEXT_FONT_CHARACTER_SIZE;
+    font->width = &nk_sdl_query_debug_font_width;
+    font->query = &nk_sdl_query_debug_font_glypth;
+
+    /* HACK: nk_sdl_device_upload_atlas turns pixels into SDL_Texture
+     *       and sets said Texture into sdl->ogl.font_tex
+     *       then nk_sdl_render expects same Texture at font->texture */
+    sdl = (struct nk_sdl*)ctx->userdata.ptr;
+    nk_sdl_device_upload_atlas(&sdl->ctx, surface->pixels, surface->w, surface->h);
+    font->texture.ptr = sdl->ogl.font_tex;
+
+    sdl->font_debug = font;
+    nk_style_set_font(ctx, font);
+
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroySurface(surface);
 }
 
 #endif /* NK_SDL3_RENDERER_IMPLEMENTATION_ONCE */
