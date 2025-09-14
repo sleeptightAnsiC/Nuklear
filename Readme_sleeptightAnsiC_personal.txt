@@ -4,6 +4,10 @@ Some of my personal notes.
 This file is not part of Nuklear! It's specific to fork at:
 https://github.com/sleeptightAnsiC/Nuklear/tree/personal
 
+TODOs:
+- I should proably investigate this: https://github.com/Immediate-Mode-UI/Nuklear/pull/779#discussion_r1966566010
+- Investigate this: https://github.com/Immediate-Mode-UI/Nuklear/pull/779#discussion_r1965047664
+
 Things that I need to upstream:
 - fix for: https://github.com/Immediate-Mode-UI/Nuklear/pull/779#discussion_r2331856071
 - fix for broken static asserts about sizeof(nk_bool) in src/nuklear.h and src/nuklear_internal.h
