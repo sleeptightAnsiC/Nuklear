@@ -212,6 +212,9 @@ nk_contextual_end(struct nk_context *ctx)
             body.y = (panel->at_y + panel->footer_height + panel->border + padding.y + panel->row.height);
             body.h = (panel->bounds.y + panel->bounds.h) - body.y;
         }
+        // FIXME: huh, what??
+        //        - mismatched curly braces (strange...)
+        //        - it does not honor NK_BUTTON_TRIGGER_ON_RELEASE
         {int pressed = nk_input_is_mouse_pressed(&ctx->input, NK_BUTTON_LEFT);
         int in_body = nk_input_is_mouse_hovering_rect(&ctx->input, body);
         if (pressed && in_body)
