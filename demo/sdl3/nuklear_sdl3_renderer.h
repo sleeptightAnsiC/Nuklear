@@ -303,6 +303,21 @@ nk_sdl_handle_event(struct nk_context* ctx, SDL_Event *evt)
     NK_ASSERT(ctx);
     NK_ASSERT(evt);
 
+    static bool was_active = false;
+    const bool active = (ctx->active && ctx->active->edit.active) ||
+                        (ctx->active && ctx->active->popup.win && ctx->active->popup.win->edit.active);
+    SDL_Window *win = SDL_GetWindowFromEvent(evt);
+    struct nk_sdl* sdl = (struct nk_sdl*)ctx->userdata.ptr;
+    if (active != was_active && win == sdl->win)
+    {
+        if (!was_active && active)
+            SDL_StartTextInput(win);
+        else if (was_active && !active)
+            SDL_StopTextInput(win);
+        was_active = active;
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "text input %s", active ? "started" : "stopped");
+    }
+
     switch(evt->type)
     {
         case SDL_EVENT_KEY_UP: /* KEYUP & KEYDOWN share same routine */
