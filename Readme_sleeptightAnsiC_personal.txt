@@ -16,6 +16,7 @@ Changes (probably won't fit in upstream, but worth considering):
   I've seen this trick being used in freetype2 and they encountered the very same problem:
   https://github.com/freetype/freetype/blob/30e45abe939d7c2cbdf268f277c293400096868c/docs/INSTALL.ANY#L11-L19
   At first, I wanted to use '#include FOO' trick too, but looking for hardcoded header name is way more portable.
+  TODO: Why didn't I simply use 'cc -include <file>' flag? I remember having some problems with it byt don't remember exactly.
 - src/stb_truetype.h and src/stb_rect_pack.h pull huge amount of libc/libm symbols and NK_* macros do not overwrite those
   Note that Nuklear/demo/sdl3_renderer/main.c already has a hack for it, which I recently contributed.
 
