@@ -171,8 +171,11 @@ struct nk_sdl_app {
     SDL_Window* window;
     SDL_Renderer* renderer;
     struct nk_context * ctx;
+    struct nk_context * ctx2;
     struct nk_colorf bg;
     enum nk_anti_aliasing AA;
+    enum nk_anti_aliasing AA2;
+    bool debug_input;
 };
 
 static SDL_AppResult
@@ -187,6 +190,7 @@ SDL_AppInit(void** appstate, int argc, char* argv[])
 {
     struct nk_sdl_app* app;
     struct nk_context* ctx;
+    struct nk_context* ctx2;
     float font_scale;
     NK_UNUSED(argc);
     NK_UNUSED(argv);
@@ -228,38 +232,41 @@ SDL_AppInit(void** appstate, int argc, char* argv[])
     }
 
     ctx = nk_sdl_init(app->window, app->renderer, nk_sdl_allocator());
+    ctx2= nk_sdl_init(app->window, app->renderer, nk_sdl_allocator());
     app->ctx = ctx;
+    app->ctx2= ctx2;
+    app->debug_input = false;
 
-#if 0
+/*#if 0*/
     {
         /* If you don't want to use advanced Nuklear font baking API
          * you can use simple ASCII debug font provided by SDL
          * just change the `#if 0` above to `#if 1` */
-        nk_sdl_style_set_debug_font(ctx);
+        nk_sdl_style_set_debug_font(ctx2);
 
         /* Note that since debug font is extremely small (only 8x8 pixels),
          * scaling it does not make much sense. The font would appear blurry. */
         NK_UNUSED(font_scale);
 
         /* You may wish to change a few style options, here are few recommendations: */
-        ctx->style.button.rounding = 0.0f;
-        ctx->style.menu_button.rounding = 0.0f;
-        ctx->style.property.rounding = 0.0f;
-        ctx->style.property.border = 0.0f;
-        ctx->style.option.border = -1.0f;
-        ctx->style.checkbox.border = -1.0f;
-        ctx->style.property.dec_button.border = -2.0f;
-        ctx->style.property.inc_button.border = -2.0f;
-        ctx->style.tab.tab_minimize_button.border = -2.0f;
-        ctx->style.tab.tab_maximize_button.border = -2.0f;
-        ctx->style.tab.node_minimize_button.border = -2.0f;
-        ctx->style.tab.node_maximize_button.border = -2.0f;
-        ctx->style.checkbox.spacing = 5.0f;
+        ctx2->style.button.rounding = 0.0f;
+        ctx2->style.menu_button.rounding = 0.0f;
+        ctx2->style.property.rounding = 0.0f;
+        ctx2->style.property.border = 0.0f;
+        ctx2->style.option.border = -1.0f;
+        ctx2->style.checkbox.border = -1.0f;
+        ctx2->style.property.dec_button.border = -2.0f;
+        ctx2->style.property.inc_button.border = -2.0f;
+        ctx2->style.tab.tab_minimize_button.border = -2.0f;
+        ctx2->style.tab.tab_maximize_button.border = -2.0f;
+        ctx2->style.tab.node_minimize_button.border = -2.0f;
+        ctx2->style.tab.node_maximize_button.border = -2.0f;
+        ctx2->style.checkbox.spacing = 5.0f;
 
         /* It's better to disable anti-aliasing when using small fonts */
-        app->AA = NK_ANTI_ALIASING_OFF;
+        app->AA2 = NK_ANTI_ALIASING_OFF;
     }
-#else
+/*#else*/
     {
         struct nk_font_atlas *atlas;
         struct nk_font_config config = nk_font_config(0);
@@ -285,7 +292,7 @@ SDL_AppInit(void** appstate, int argc, char* argv[])
 
         app->AA = NK_ANTI_ALIASING_ON;
     }
-#endif
+/*#endif*/
 
     nk_input_begin(ctx);
 
@@ -298,6 +305,14 @@ SDL_AppEvent(void *appstate, SDL_Event* event)
     struct nk_sdl_app* app = (struct nk_sdl_app*)appstate;
 
     switch (event->type) {
+        case SDL_EVENT_KEY_DOWN:
+            if (event->key.scancode == SDL_SCANCODE_G &&
+                event->key.mod & (SDL_KMOD_LCTRL | SDL_KMOD_RCTRL))
+            {
+                app->debug_input = !app->debug_input;
+                return SDL_APP_CONTINUE;
+            }
+            break;
         case SDL_EVENT_QUIT:
             return SDL_APP_SUCCESS;
         case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
@@ -313,7 +328,9 @@ SDL_AppEvent(void *appstate, SDL_Event* event)
      * if your renderer uses custom scale. */
     SDL_ConvertEventToRenderCoordinates(app->renderer, event);
 
-    nk_sdl_handle_event(app->ctx, event);
+    nk_sdl_handle_event(
+            app->debug_input ? app->ctx2 : app->ctx,
+            event);
 
     return SDL_APP_CONTINUE;
 }
@@ -323,6 +340,7 @@ SDL_AppIterate(void *appstate)
 {
     struct nk_sdl_app* app = (struct nk_sdl_app*)appstate;
     struct nk_context* ctx = app->ctx;
+    struct nk_context* ctx2= app->ctx2;
 
 #ifdef INCLUDE_CONFIGURATOR
     static struct nk_color color_table[NK_COLOR_COUNT];
@@ -330,6 +348,7 @@ SDL_AppIterate(void *appstate)
 #endif
 
     nk_input_end(ctx);
+    nk_input_end(ctx2);
 
     /* GUI */
     if (nk_begin(ctx, "Demo", nk_rect(50, 50, 230, 250),
@@ -366,6 +385,73 @@ SDL_AppIterate(void *appstate)
     }
     nk_end(ctx);
 
+    if (nk_begin(ctx2,
+                "Ctrl+G to toggle debug input",
+                 nk_rect(0                      +  10 * 1,
+                         WINDOW_HEIGHT * 2 / 3  +  10 * 1,
+                         WINDOW_WIDTH           -  10 * 2,
+                         WINDOW_HEIGHT * 1 / 3  -  10 * 2),
+                 NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
+    {
+        struct nk_window *it;
+
+        nk_layout_row_dynamic(ctx2, ctx2->style.font->height + 2, 1);
+        nk_labelf(ctx2, 0, "debug input is: %s",
+                 app->debug_input ? "enabled" : "DISABLED");
+        nk_spacer(ctx2);
+        nk_label(ctx2, "window list:", 0);
+        nk_spacer(ctx2);
+
+        /*  HACK: window fields are internal to nk_context */
+        for (it = ctx->begin; it; it = it->next)
+        {
+            nk_layout_row_dynamic(ctx2, ctx2->style.font->height + 2, 7);
+            nk_labelf(ctx2, 0, "%s", it->name_string);
+            nk_labelf(ctx2, 0, "%p", (void*)it);
+            {
+                bool collapsed = nk_window_is_collapsed(ctx, it->name_string);
+                if (nk_checkbox_label(ctx2, "collapsed", &collapsed)) {
+                    nk_window_collapse(ctx, it->name_string,
+                                       collapsed ? NK_MINIMIZED : NK_MAXIMIZED);
+                }
+            }
+            {
+                bool hidden = nk_window_is_hidden(ctx, it->name_string);
+                if (nk_checkbox_label(ctx2, "hidden", &hidden)) {
+                    nk_window_show(ctx, it->name_string,
+                                   hidden ? NK_HIDDEN : NK_SHOWN);
+                }
+            }
+            {
+                /* WARN: some functions call it "active", some "focus", god knows why... */
+                bool active = nk_window_is_active(ctx, it->name_string);
+                if (nk_checkbox_label(ctx2, "active", &active)) {
+                    if (active) {
+                        nk_window_set_focus(ctx, it->name_string);
+                    } else {
+                        /* FIXME: is it even possible to have NO focused/active windows at all ? */
+                        /* nk_window_set_focus(ctx, NULL); */
+                    }
+                }
+            }
+            {
+                if (nk_button_label(ctx2, "close") &&
+                    !nk_window_is_closed(ctx, it->name_string))
+                {
+                    /* NOTE: this will make the window "reappear"
+                     *       because nk_begin would recreate it anyway */
+                    nk_window_close(ctx, it->name_string);
+                }
+            }
+            {
+                /* FIXME: this one doesn't take a name... */
+                /* nk_window_is_hovered(const struct nk_context *ctx); */
+            }
+        }
+    }
+    /* TODO: something for debugging popup window ? */
+    nk_end(ctx2);
+
     /* -------------- EXAMPLES ---------------- */
     #ifdef INCLUDE_CALCULATOR
         calculator(ctx);
@@ -388,6 +474,7 @@ SDL_AppIterate(void *appstate)
     SDL_RenderClear(app->renderer);
 
     nk_sdl_render(ctx, app->AA);
+    nk_sdl_render(ctx2, app->AA2);
     nk_sdl_update_TextInput(ctx);
 
     /* show if TextInput is active for debug purpose. Feel free to remove this. */
@@ -398,6 +485,7 @@ SDL_AppIterate(void *appstate)
     SDL_RenderPresent(app->renderer);
 
     nk_input_begin(ctx);
+    nk_input_begin(ctx2);
     return SDL_APP_CONTINUE;
 }
 
