@@ -24,14 +24,15 @@ TEMPDIR := ./bin
 BIN := ${TEMPDIR}/demo${BINEXT}
 
 cflags += -std=c89 -Wall -Wextra -Wpedantic
-cflags += -O2
-#cflags += -O0 -g
+#cflags += -O2
+cflags += -O0 -g
 #cflags += -fsanitize=address
 #cflags += -fsanitize=undefined
 cflags += ${CFLAGS}
 
 cppflags += $(shell ${PKG_CONFIG} ${PKG_SDL3} --cflags --keep-system-cflags)
 cppflags += ${CPPFLAGS}
+cppflags += -DINCLUDE_ALL
 
 ldflags += $(shell ${PKG_CONFIG} ${PKG_SDL3} --libs-only-L --libs-only-other --keep-system-libs)
 ldflags += ${LDFLAGS}
@@ -50,7 +51,7 @@ ${BIN}:
 	mkdir -p $(dir $@)
 	${CC} ${SRC} -o $@ -MD -MF ${DEP} ${cppflags} ${ldflags} ${ldlibs} ${cflags}
 
-${BIN}: ${SRC}
+${BIN}: ${SRC} ./Makefile
 
 -include ${DEP}
 
