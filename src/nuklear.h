@@ -9,6 +9,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#ifdef NK_INCLUDE_USER_CONFIG
+  #ifndef NK_INCLUDE_USER_CONFIG_H_
+    #include "nk_user_config.h"
+    #define NK_INCLUDE_USER_CONFIG_H_
+  #endif
+#endif
+
 /*
  * ==============================================================
  *

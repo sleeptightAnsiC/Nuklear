@@ -1,6 +1,13 @@
 #ifndef NK_INTERNAL_H
 #define NK_INTERNAL_H
 
+#ifdef NK_INCLUDE_USER_CONFIG
+  #ifndef NK_INCLUDE_USER_CONFIG_H_
+    #include "nk_user_config.h"
+    #define NK_INCLUDE_USER_CONFIG_H_
+  #endif
+#endif
+
 #ifndef NK_POOL_DEFAULT_CAPACITY
 #define NK_POOL_DEFAULT_CAPACITY 16
 #endif
