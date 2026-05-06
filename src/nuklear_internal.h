@@ -1,6 +1,13 @@
 #ifndef NK_INTERNAL_H
 #define NK_INTERNAL_H
 
+#ifdef NK_INCLUDE_CONFIG
+  #ifndef NK_NUKLEAR_CONFIG_H_
+    #include "nuklear_config.h"
+    #define NK_NUKLEAR_CONFIG_H_
+  #endif
+#endif
+
 #ifndef NK_POOL_DEFAULT_CAPACITY
 #define NK_POOL_DEFAULT_CAPACITY 16
 #endif
